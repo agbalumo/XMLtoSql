@@ -1,0 +1,98 @@
+
+package sqltoxml;
+
+import java.io.File;
+import java.sql.*;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import org.w3c.dom.Node;
+
+
+public class SqltoXml {
+    
+ static final String dburl = "jdbc:mysql://localhost:3306/XMLTRANSFER?autoReconnect=true&useSSL=false"; 
+    static final String username = "root";
+    static final String password = "oladunni";
+    static final String JDBC_driver = "com.mysql.jdbc.Driver";
+   
+    public static void main(String[] args) throws ClassNotFoundException, SQLException, TransformerConfigurationException, TransformerException {
+        
+        Connection con = null;
+        Statement stmt = null;
+        
+         try{
+            //register JDBC driver
+            Class.forName("com.mysql.jdbc.Driver");
+            //open connec.
+            System.out.println("Connecting to a selected database..");
+            con = DriverManager.getConnection(dburl, username, password);
+            
+            System.out.println("Connected database successfully...");
+            
+            //Execute a query
+            System.out.println("Creating statement..");
+            
+            String sql_stmt = "SELECT idNum, fullname, salary, department FROM employees";
+            
+            ResultSet rs = stmt.executeQuery(sql_stmt);
+            
+        //write rs into xml file called employeerecords.xml
+        
+            while (rs.next()){
+                
+                try{
+                    TransformerFactory trFactory = TransformerFactory.newInstance();
+                
+                Transformer tr = trFactory.newTransformer();
+                DOMSource src = new DOMSource((Node) rs); //rs casted into node
+                
+                StreamResult rslt = new StreamResult(new File("C:\\employeerecords.xml")); //create employeerecords.xml
+                
+                tr.transform(src, rslt);
+                
+                StreamResult consoleResult = new StreamResult(System.out);
+                
+                tr.transform(src, consoleResult);
+                
+                rs.close();
+                
+                }
+                catch (TransformerException e){
+                        }
+                    
+                } 
+            
+                
+                
+            }  catch (SQLException | ClassNotFoundException se){
+            }
+         
+         finally {
+            //finally block used to close resources
+            try {
+                if (stmt != null)
+                    con.close();
+            }catch(SQLException se){
+            }
+            try{
+                
+                if (con != null)
+                    con.close();
+               
+            } 
+            
+            catch(SQLException se){
+            }
+        }
+        
+        
+        
+        
+    }
+            
+    
+}

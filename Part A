@@ -1,0 +1,134 @@
+
+package xmltransfer;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.ParserConfigurationException;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Node;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+
+public class XMLTransfer {
+    
+    static String dburl = "jdbc:mysql://localhost:3306/XMLTRANSFER?autoReconnect=true&useSSL=false"; 
+    static String username = "root";
+    static String password = "oladunni";
+
+    
+    public static void main(String[] args) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+        try{
+            File my_xml_file = new File("C:\\Config\\employeerecords.xml");
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            Document myDoc = dBuilder.parse(my_xml_file);
+            myDoc.getDocumentElement().normalize();
+            System.out.println("Root Element :" + myDoc.getDocumentElement().getNodeName());
+            NodeList nList = myDoc.getElementsByTagName("personnel");
+            
+            System.out.println("___________________________");
+            
+            for (int i = 0; i < nList.getLength(); i++){
+                Node nNode = nList.item(i);
+                System.out.println("\nCurrent Element: " + nNode.getNodeName());
+                
+                if (nNode.getNodeType() == Node.ELEMENT_NODE){
+                    Element eElement = (Element) nNode;
+                    
+                    System.out.println("Personnel ID Number: " + eElement.getAttribute("idNum"));
+                    System.out.println("Personnel Full Name: " + eElement.getAttribute("fullname"));
+                    System.out.println("Personnel Salary: " + eElement.getAttribute("Salary"));
+                    System.out.println("Personnel Department: " + eElement.getAttribute("department"));
+                    
+                    doSqlsave();
+
+                }
+            }   
+        } catch(ParserConfigurationException | SAXException | IOException | DOMException e){
+        }
+          
+        
+    }
+    
+ public static void doSqlsave() throws InstantiationException, IllegalAccessException, ClassNotFoundException{
+      
+     Connection con = null;
+        try {
+        Class.forName("com.mysql.jdbc.Driver").newInstance();
+            con = DriverManager.getConnection(dburl, username, password);
+        } catch (SQLException ex) {
+            Logger.getLogger(XMLTransfer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+String sql = "INSERT INTO employees (idNum, fullname, salary, department) values (?, ?, ?, ?)";
+
+PreparedStatement stmt = null;
+        try {
+            stmt = con.prepareStatement(sql);
+        } catch (SQLException ex) {
+            Logger.getLogger(XMLTransfer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+            int idNum = 0;
+        try {
+            stmt.setInt(1, idNum);
+        } catch (SQLException ex) {
+            Logger.getLogger(XMLTransfer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+            String fullname = "";
+        try {
+            stmt.setString(2, fullname);
+        } catch (SQLException ex) {
+            Logger.getLogger(XMLTransfer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+            double salary = 0;
+       
+        try {
+            stmt.setDouble(3, salary);
+        } catch (SQLException ex) {
+            Logger.getLogger(XMLTransfer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+            String department = null;
+        try {
+            stmt.setString(4, department);
+        } catch (SQLException ex) {
+            Logger.getLogger(XMLTransfer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+int row = 0;
+        try {
+            row = stmt.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(XMLTransfer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+if (row > 0) {
+    PrintStream printf = System.out.printf("%s % s %s has been inserted", department, salary, fullname, idNum);
+    
+}
+        }
+        
+    catch(Exception e){
+            
+System.out.println(e.getMessage());
+    
+}
+ }       
+   
+        
+    
+    
+}
+
+
+
